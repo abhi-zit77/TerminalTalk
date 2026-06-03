@@ -1,5 +1,5 @@
 {
-  "name": "terminaltalk",
+  "name": "@abhi_zit/terminaltalk",
   "version": "0.1.0",
   "description": "Open-source realtime terminal chat built with Ink and Convex.",
   "type": "module",
@@ -34,6 +34,9 @@
   ],
   "author": "Abhijit Singh",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@noble/hashes": "^1.8.0",
     "convex": "^1.25.4",

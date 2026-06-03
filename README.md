@@ -5,12 +5,12 @@ Open-source realtime terminal chat built with TypeScript, Ink, and Convex.
 TerminalTalk installs as a global npm CLI:
 
 ```bash
-npm i -g terminaltalk
+npm i -g @abhi_zit/terminaltalk
 terminaltalk
 ```
 
-The package name is lowercase (`terminaltalk`) because npm requires lowercase
-package names. The UI brand is `TerminalTalk`.
+The npm package is scoped as `@abhi_zit/terminaltalk`. The UI brand and CLI
+command remain `TerminalTalk` and `terminaltalk`.
 
 ## Status
 
