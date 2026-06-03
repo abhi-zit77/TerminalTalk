@@ -1,0 +1,59 @@
+{
+  "name": "terminaltalk",
+  "version": "0.1.0",
+  "description": "Open-source realtime terminal chat built with Ink and Convex.",
+  "type": "module",
+  "bin": {
+    "terminaltalk": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "convex",
+    "README.md",
+    "LICENSE",
+    ".env.example"
+  ],
+  "scripts": {
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
+    "dev": "tsx src/cli.tsx",
+    "lint": "eslint .",
+    "pack:dry": "npm pack --dry-run",
+    "start": "tsx src/cli.tsx",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "validate": "npm run lint && npx tsc --noEmit && npm test"
+  },
+  "keywords": [
+    "terminal",
+    "chat",
+    "ink",
+    "convex",
+    "cli",
+    "tui"
+  ],
+  "author": "Abhijit Singh",
+  "license": "MIT",
+  "dependencies": {
+    "@noble/hashes": "^1.8.0",
+    "convex": "^1.25.4",
+    "ink": "^5.2.1",
+    "nanoid": "^5.1.5",
+    "react": "^18.3.1",
+    "systeminformation": "^5.27.11",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@types/node": "^22.13.14",
+    "@types/react": "^18.3.23",
+    "eslint": "^9.32.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.38.0",
+    "vitest": "^4.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
