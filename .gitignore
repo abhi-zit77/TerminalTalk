@@ -4,5 +4,5 @@ dist/
 .env.local
 .convex/
 *.tgz
+stitch_terminaltalk_tui_client.zip
 AGENTS.md 
-
