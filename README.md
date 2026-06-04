@@ -1,5 +1,6 @@
 # TerminalTalk
 
+MIND IT IT'S STILL IN TESTING SO ANY INTERACTION WITH THE CODE CAN BE HARMFULL
 Open-source realtime terminal chat built with TypeScript, Ink, and Convex.
 
 TerminalTalk installs as a global npm CLI:
