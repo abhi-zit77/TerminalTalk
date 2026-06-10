@@ -23,8 +23,20 @@ export interface MessageDoc {
   groupId?: Id<"groups"> | undefined;
   friendUserId?: Id<"users"> | undefined;
   senderId: Id<"users">;
-  body: string;
+  terminalSessionId: Id<"terminalSessions">;
+  body?: string | undefined;
+  redactedAt?: number | undefined;
+  redactionReason?: "terminal_closed" | "session_expired" | undefined;
   createdAt: number;
+}
+
+export interface TerminalSessionDoc {
+  _id: Id<"terminalSessions">;
+  userId: Id<"users">;
+  startedAt: number;
+  lastSeenAt: number;
+  endedAt?: number | undefined;
+  status: "active" | "ended" | "expired";
 }
 
 export async function requireUserBySession(
@@ -51,7 +63,7 @@ export async function requireUserBySession(
     throw new Error("Session user does not exist.");
   }
 
-  return user as unknown as UserDoc;
+  return user;
 }
 
 export async function findUserByUsername(
@@ -63,5 +75,5 @@ export async function findUserByUsername(
     .withIndex("by_username", (q) => q.eq("username", username))
     .unique();
 
-  return user ? (user as unknown as UserDoc) : null;
+  return user;
 }

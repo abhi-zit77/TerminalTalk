@@ -19,9 +19,11 @@ export interface ChatGroup {
 
 export interface ChatFriend {
   id: string;
+  userId: string;
   username: string;
   displayName: string;
-  status: "pending" | "accepted";
+  status: "pending" | "accepted" | "blocked";
+  direction?: "incoming" | "outgoing" | undefined;
 }
 
 export interface ChatMessage {
@@ -34,7 +36,9 @@ export interface ChatMessage {
     displayName?: string | undefined;
     nickname?: string | undefined;
   };
-  body: string;
+  body?: string | undefined;
+  redactedAt?: number | undefined;
+  redactionReason?: "terminal_closed" | "session_expired" | undefined;
   createdAt: number;
 }
 

@@ -29,8 +29,8 @@ export const signup = mutation({
       throw new Error("Name must be 1-60 characters.");
     }
 
-    if (args.password.length < 10) {
-      throw new Error("Password must be at least 10 characters.");
+    if (args.password.length < 3) {
+      throw new Error("Password must be at least 3 characters.");
     }
 
     const existing = await findUserByUsername(ctx, username);
@@ -128,8 +128,8 @@ export const updateProfile = mutation({
     } = { username, displayName };
 
     if (args.newPassword !== undefined && args.newPassword.length > 0) {
-      if (args.newPassword.length < 10) {
-        throw new Error("Password must be at least 10 characters.");
+      if (args.newPassword.length < 3) {
+        throw new Error("Password must be at least 3 characters.");
       }
 
       if (!args.currentPassword || !verifyPassword(args.currentPassword, user.passwordHash)) {

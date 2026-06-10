@@ -4,19 +4,19 @@ export type SlashCommand =
   | { type: "help" }
   | { type: "join-group"; code: string }
   | { type: "logout" }
-  | { type: "nick"; username: string; nickname: string }
-  | { type: "settings" };
+  | { type: "settings" }
+  | { type: "theme" };
 
 export type ParseCommandResult =
   | { ok: true; command: SlashCommand }
   | { ok: false; error: string };
 
 export const quickCommandHelp = [
+  "/theme",
   "/settings",
   "/create-group <name>",
   "/join-group <code>",
   "/add-friend <username>",
-  "/nick <username> <nickname>",
   "/help",
   "/logout"
 ] as const;
@@ -32,6 +32,8 @@ export function parseCommand(input: string): ParseCommandResult {
   const rest = args.join(" ").trim();
 
   switch (rawCommand) {
+    case "/theme":
+      return { ok: true, command: { type: "theme" } };
     case "/settings":
       return { ok: true, command: { type: "settings" } };
     case "/help":
@@ -59,19 +61,6 @@ export function parseCommand(input: string): ParseCommandResult {
       }
 
       return { ok: true, command: { type: "add-friend", username } };
-    }
-    case "/nick": {
-      const [username, ...nicknameParts] = args;
-      const nickname = nicknameParts.join(" ").trim();
-
-      if (!username || nickname.length === 0) {
-        return { ok: false, error: "Usage: /nick <username> <nickname>" };
-      }
-
-      return {
-        ok: true,
-        command: { type: "nick", username, nickname }
-      };
     }
     default:
       return {

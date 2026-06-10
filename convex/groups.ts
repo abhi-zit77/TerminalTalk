@@ -99,7 +99,7 @@ export const join = mutation({
     const existing = existingMemberships.find((record) => {
       const membership = record as unknown as { userId: Id<"users"> };
       return membership.userId === user._id;
-    });
+    }) as { role: "admin" | "member" } | undefined;
 
     if (!existing) {
       await ctx.db.insert("groupMembers", {
@@ -113,7 +113,66 @@ export const join = mutation({
     return {
       id: group._id,
       name: group.name,
-      role: "member" as const
+      role: existing?.role ?? ("member" as const)
     };
+  }
+});
+
+export const leave = mutation({
+  args: {
+    sessionToken: v.string(),
+    groupId: v.string()
+  },
+  handler: async (ctx, args) => {
+    const user = await requireUserBySession(ctx, args.sessionToken);
+    const groupId = args.groupId as Id<"groups">;
+    const membership = await ctx.db
+      .query("groupMembers")
+      .withIndex("by_group_user", (q) => q.eq("groupId", groupId).eq("userId", user._id))
+      .unique();
+
+    if (!membership) {
+      throw new Error("You are not a member of that group.");
+    }
+
+    const membershipRecord = membership as unknown as {
+      _id: Id<"groupMembers">;
+      role: "admin" | "member";
+      joinedAt: number;
+    };
+    await ctx.db.delete(membershipRecord._id);
+
+    const remainingMemberships = await ctx.db
+      .query("groupMembers")
+      .withIndex("by_group", (q) => q.eq("groupId", groupId))
+      .collect();
+
+    if (remainingMemberships.length === 0) {
+      await ctx.db.delete(groupId);
+      return null;
+    }
+
+    const hasAdmin = remainingMemberships.some((record) => {
+      const remaining = record as unknown as { role: "admin" | "member" };
+      return remaining.role === "admin";
+    });
+
+    if (!hasAdmin && membershipRecord.role === "admin") {
+      const oldestMember = remainingMemberships
+        .map(
+          (record) =>
+            record as unknown as {
+              _id: Id<"groupMembers">;
+              joinedAt: number;
+            }
+        )
+        .sort((left, right) => left.joinedAt - right.joinedAt)[0];
+
+      if (oldestMember) {
+        await ctx.db.patch(oldestMember._id, { role: "admin" });
+      }
+    }
+
+    return null;
   }
 });
