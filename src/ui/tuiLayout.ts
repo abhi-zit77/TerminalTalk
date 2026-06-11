@@ -13,6 +13,9 @@ export const APP_SHELL_LAYOUT = {
   chatScrollPage: 8
 } as const;
 
+export const NO_CHAT_STATUS_MESSAGE =
+  "No chat selected. Add a friend, join a group, or create one to start.";
+
 export interface MainScreenLayout {
   bodyHeight: number;
   chatPaneHeight: number;
@@ -204,6 +207,10 @@ export function fitComposerInput(
   return isComposerInputWithinBounds(candidate, options)
     ? { accepted: true, input: candidate }
     : { accepted: false, input };
+}
+
+export function getNoChatStatusMessage(hasSendableChat: boolean): string | undefined {
+  return hasSendableChat ? undefined : NO_CHAT_STATUS_MESSAGE;
 }
 
 export function buildSidebarChatEntries(

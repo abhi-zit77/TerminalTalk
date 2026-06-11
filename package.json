@@ -1,6 +1,6 @@
 {
   "name": "@abhi_zit/terminaltalk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Open-source realtime terminal chat built with Ink and Convex.",
   "type": "module",
   "bin": {

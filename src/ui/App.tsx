@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Text, useApp, useInput, useStdout } from "ink";
 import { loadRuntimeConfig } from "../config/env.js";
 import {
@@ -49,6 +49,7 @@ import {
   getChatViewport,
   getMainScreenLayout,
   getMouseWheelScrollDelta,
+  getNoChatStatusMessage,
   getSidebarSelectionIndex,
   isTerminalMouseSequence,
   moveSidebarSelectionIndex
@@ -72,6 +73,10 @@ type ChatDisplayRow =
   | { key: string; kind: "plain"; color: string; text: string };
 
 const COMPOSER_LIMIT_NOTICE = "You reached the chatbox limit. Send this message, then type again.";
+const NO_CHAT_NOTICE: AppNotice = {
+  tone: "info",
+  message: getNoChatStatusMessage(false) ?? ""
+};
 
 const settingsFields: SettingsField[] = [
   "displayName",
@@ -106,10 +111,10 @@ export function App(): React.ReactElement {
   const theme = getTheme(themeId);
   const [notice, setNotice] = useState<AppNotice>({
     tone: runtimeConfig.convexUrl || runtimeConfig.demoMode ? "info" : "error",
-    message: runtimeConfig.convexUrl
-      ? "Convex mode ready."
-      : runtimeConfig.demoMode
-        ? "Demo mode active."
+    message: runtimeConfig.demoMode
+      ? "Demo mode active."
+      : runtimeConfig.convexUrl
+        ? "Convex mode ready."
         : "Convex URL is required."
   });
 
@@ -162,7 +167,7 @@ export function App(): React.ReactElement {
   if (!session) {
     return (
       <AuthScreen
-        convexUrl={runtimeConfig.convexUrl}
+        convexUrl={gateway.mode === "convex" ? runtimeConfig.convexUrl : undefined}
         gateway={gateway}
         notice={notice}
         onAuth={handleAuth}
@@ -205,7 +210,7 @@ function SetupErrorScreen({
 }): React.ReactElement {
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Header gatewayMode="demo" theme={theme} />
+      <Header gatewayMode="setup" theme={theme} />
       <Box
         borderStyle="single"
         borderColor={theme.notice.error}
@@ -412,6 +417,7 @@ function MainScreen({
   const [settingsDraft, setSettingsDraft] = useState<Record<SettingsField, string>>(() =>
     createSettingsDraft(session)
   );
+  const didShowComposerLimitNotice = useRef(false);
 
   const sidebarEntries = useMemo(
     () => buildSidebarChatEntries(groups, friends),
@@ -456,6 +462,16 @@ function MainScreen({
   const maxChatScrollOffset = Math.max(
     0,
     displayRows.length - layout.chatViewportHeight
+  );
+  const hasSendableChat = Boolean(activeGroup || activeDirectFriend);
+  const visibleNotice = useMemo(
+    () =>
+      view === "chat"
+      && !hasSendableChat
+      && notice.message !== COMPOSER_LIMIT_NOTICE
+        ? NO_CHAT_NOTICE
+        : notice,
+    [hasSendableChat, notice, view]
   );
 
   const scrollChatBy = useCallback(
@@ -646,21 +662,16 @@ function MainScreen({
   useEffect(() => {
     let cancelled = false;
 
-    const loadStats = async (): Promise<void> => {
-      const nextStats = await readLocalSystemStats();
-      if (!cancelled) {
-        setStats(nextStats);
-      }
-    };
-
-    void loadStats();
-    const timer = setInterval(() => {
-      void loadStats();
-    }, 5000);
+    void readLocalSystemStats()
+      .then((nextStats) => {
+        if (!cancelled) {
+          setStats(nextStats);
+        }
+      })
+      .catch(() => undefined);
 
     return () => {
       cancelled = true;
-      clearInterval(timer);
     };
   }, []);
 
@@ -673,7 +684,7 @@ function MainScreen({
   }, [activeChatTarget?.id, activeChatTarget?.kind]);
 
   useEffect(() => {
-    if (activeFriend && !activeDirectFriend) {
+    if (!hasSendableChat) {
       setMessages([]);
       return;
     }
@@ -697,8 +708,8 @@ function MainScreen({
     return unsubscribe;
   }, [
     activeDirectFriend,
-    activeFriend,
     activeGroup,
+    hasSendableChat,
     gateway,
     onNotice,
     recoverInvalidStoredSession,
@@ -973,18 +984,15 @@ function MainScreen({
         return;
       }
 
+      if (!hasSendableChat) {
+        onNotice(NO_CHAT_NOTICE);
+        return;
+      }
+
       if (!terminalSessionId) {
         onNotice({
           tone: "warning",
           message: "Terminal session is still starting."
-        });
-        return;
-      }
-
-      if (activeFriend && !canOpenDirectChat(activeFriend)) {
-        onNotice({
-          tone: "warning",
-          message: "Direct chat unlocks after the friend request is accepted."
         });
         return;
       }
@@ -1004,10 +1012,10 @@ function MainScreen({
     }
   }, [
     activeDirectFriend,
-    activeFriend,
     activeGroup,
     executeCommand,
     gateway,
+    hasSendableChat,
     input,
     onNotice,
     session,
@@ -1024,10 +1032,15 @@ function MainScreen({
         });
 
         if (!result.accepted) {
-          onNotice({
-            tone: "warning",
-            message: COMPOSER_LIMIT_NOTICE
-          });
+          if (!didShowComposerLimitNotice.current) {
+            didShowComposerLimitNotice.current = true;
+            onNotice({
+              tone: "warning",
+              message: COMPOSER_LIMIT_NOTICE
+            });
+          }
+        } else {
+          didShowComposerLimitNotice.current = false;
         }
 
         return result.input;
@@ -1279,11 +1292,13 @@ function MainScreen({
     }
 
     if (key.return) {
+      didShowComposerLimitNotice.current = false;
       void submitInput();
       return;
     }
 
     if (key.backspace || key.delete) {
+      didShowComposerLimitNotice.current = false;
       setInput((current) => deleteComposerCharacter(current));
       return;
     }
@@ -1297,7 +1312,7 @@ function MainScreen({
     <Box flexDirection="column" height={layout.terminalRows} paddingX={1}>
       <Header gatewayMode={gateway.mode} theme={theme} />
       <Box flexGrow={1} height={layout.bodyHeight}>
-        <AppSidebar
+        <MemoizedAppSidebar
           activeChatTarget={activeChatTarget}
           bodyHeight={layout.bodyHeight}
           friends={friends}
@@ -1362,7 +1377,7 @@ function MainScreen({
           />
         )}
       </Box>
-      <NoticeLine notice={notice} theme={theme} />
+      <NoticeLine notice={visibleNotice} theme={theme} />
       {!inputSupported ? <InputUnsupportedNotice theme={theme} /> : null}
     </Box>
   );
@@ -1621,7 +1636,7 @@ function Header({
   gatewayMode,
   theme
 }: {
-  gatewayMode: ChatGateway["mode"];
+  gatewayMode: ChatGateway["mode"] | "setup";
   theme: TerminalTheme;
 }): React.ReactElement {
   return (
@@ -1678,6 +1693,8 @@ function AppSidebar({
     </Box>
   );
 }
+
+const MemoizedAppSidebar = React.memo(AppSidebar);
 
 function ProfilePanel({
   activeChatTarget,
@@ -1836,7 +1853,7 @@ function ChatWorkspace({
 }): React.ReactElement {
   return (
     <Box flexDirection="column" flexGrow={1} marginLeft={1}>
-      <ChatPane
+      <MemoizedChatPane
         activeGroup={activeGroup}
         activeFriend={activeFriend}
         chatColumns={composerColumns}
@@ -1847,7 +1864,12 @@ function ChatWorkspace({
         session={session}
         theme={theme}
       />
-      <Composer columns={composerColumns} height={composerHeight} input={input} theme={theme} />
+      <MemoizedComposer
+        columns={composerColumns}
+        height={composerHeight}
+        input={input}
+        theme={theme}
+      />
     </Box>
   );
 }
@@ -1902,6 +1924,8 @@ function ChatPane({
     </Box>
   );
 }
+
+const MemoizedChatPane = React.memo(ChatPane);
 
 function buildChatDisplayRows(
   messages: readonly ChatMessage[],
@@ -2063,7 +2087,7 @@ function Composer({
     >
       {displayLines.map((line, index) => (
         <Text
-          key={`${index}-${line}`}
+          key={`composer-line-${index}`}
           color={input.length > 0 ? theme.composer.inputText : theme.composer.placeholder}
         >
           {line}
@@ -2073,6 +2097,8 @@ function Composer({
     </Box>
   );
 }
+
+const MemoizedComposer = React.memo(Composer);
 
 function getComposerInputRows(height: number): number {
   return Math.max(1, height - 3);

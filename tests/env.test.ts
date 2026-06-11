@@ -2,7 +2,10 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { loadRuntimeConfig } from "../src/config/env.js";
+import {
+  DEFAULT_TERMINALTALK_CONVEX_URL,
+  loadRuntimeConfig
+} from "../src/config/env.js";
 
 describe("loadRuntimeConfig", () => {
   let cwd: string;
@@ -53,6 +56,13 @@ describe("loadRuntimeConfig", () => {
     ).toEqual({
       convexUrl: "https://override.convex.cloud",
       demoMode: true
+    });
+  });
+
+  it("uses the public TerminalTalk Convex deployment for global npm installs", () => {
+    expect(loadRuntimeConfig({ cwd, env: {} })).toEqual({
+      convexUrl: DEFAULT_TERMINALTALK_CONVEX_URL,
+      demoMode: false
     });
   });
 });

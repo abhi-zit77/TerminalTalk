@@ -12,10 +12,12 @@ import {
   getChatViewport,
   getMainScreenLayout,
   getMouseWheelScrollDelta,
+  getNoChatStatusMessage,
   getSidebarSelectionIndex,
   insertComposerNewline,
   isTerminalMouseSequence,
-  moveSidebarSelectionIndex
+  moveSidebarSelectionIndex,
+  NO_CHAT_STATUS_MESSAGE
 } from "../src/ui/tuiLayout.js";
 import {
   ENTER_ALTERNATE_SCREEN,
@@ -247,6 +249,11 @@ describe("TUI layout helpers", () => {
       accepted: false,
       input: "hello\nworld"
     });
+  });
+
+  it("shows a friendly status hint when no chat can receive messages", () => {
+    expect(getNoChatStatusMessage(false)).toBe(NO_CHAT_STATUS_MESSAGE);
+    expect(getNoChatStatusMessage(true)).toBeUndefined();
   });
 
   it("builds sidebar chat entries with groups first and friends second", () => {

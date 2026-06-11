@@ -6,6 +6,8 @@ export interface RuntimeConfig {
   demoMode: boolean;
 }
 
+export const DEFAULT_TERMINALTALK_CONVEX_URL = "https://wandering-otter-232.convex.cloud";
+
 interface RuntimeConfigOptions {
   cwd?: string | undefined;
   env?: NodeJS.ProcessEnv | undefined;
@@ -24,7 +26,10 @@ export function loadRuntimeConfig(options: RuntimeConfigOptions = {}): RuntimeCo
     env["TERMINALTALK_DEMO_MODE"]?.trim().toLowerCase() === "true";
 
   return {
-    convexUrl: convexUrl ?? deriveConvexUrl(env["CONVEX_DEPLOYMENT"]),
+    convexUrl:
+      convexUrl ??
+      deriveConvexUrl(env["CONVEX_DEPLOYMENT"]) ??
+      DEFAULT_TERMINALTALK_CONVEX_URL,
     demoMode
   };
 }

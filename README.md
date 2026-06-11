@@ -47,8 +47,8 @@ npm install
 npm run dev
 ```
 
-Without a Convex URL, TerminalTalk shows a setup error unless demo mode is
-enabled.
+Without a local Convex URL, TerminalTalk uses the public TerminalTalk Convex
+deployment. Set demo mode when you want an in-memory local UI session instead.
 
 PowerShell demo mode:
 
@@ -84,7 +84,7 @@ Do not commit `.env`, private deployment credentials, or secrets.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `TERMINALTALK_CONVEX_URL` | Yes for cloud mode | Public Convex deployment URL used by the CLI client. |
+| `TERMINALTALK_CONVEX_URL` | No | Override the public TerminalTalk Convex deployment used by the CLI client. |
 | `TERMINALTALK_DEMO_MODE` | No | Set to `true` to use the in-memory demo gateway for local UI work. |
 
 ## Command Reference
