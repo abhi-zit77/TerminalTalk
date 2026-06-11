@@ -1,4 +1,6 @@
 # TerminalTalk
+<img width="1900" height="1072" alt="image" src="https://github.com/user-attachments/assets/09b00eec-f20a-470c-a935-9fa4cfaf18ad" />
+
 
 TerminalTalk is a realtime terminal chat app with a dedicated Ink TUI, Convex
 sync, group chat, accepted-friend direct messages, local session controls, and
