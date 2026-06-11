@@ -1,11 +1,16 @@
 # TerminalTalk
 
-MIND IT IT'S STILL IN TESTING SO ANY INTERACTION WITH THE CODE CAN BE HARMFULL
-Open-source realtime terminal chat built with TypeScript, Ink, and Convex.
+TerminalTalk is a realtime terminal chat app with a dedicated Ink TUI, Convex
+sync, group chat, accepted-friend direct messages, local session controls, and
+terminal-session-based message disappearance.
 
-TerminalTalk is a dedicated terminal UI for chatting from the command line. It
-opens as an app-like TUI, keeps local device details local, and uses Convex for
-realtime accounts, sessions, groups, friends, and messages.
+> Status: TerminalTalk is still early testing software. Use it carefully, review
+> the code before running it in sensitive environments, and do not share private
+> credentials or production data through test deployments.
+
+TerminalTalk opens as an app-like command-line workspace, keeps local device
+details local, and uses Convex for realtime accounts, sessions, groups, friends,
+and messages.
 
 ```bash
 npm i -g @abhi_zit/terminaltalk
